@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using BitcoinPriceForecastingTaining;
+using Microsoft.Extensions.Configuration;
 
 var builder = new ConfigurationBuilder();
 builder.SetBasePath(Directory.GetCurrentDirectory())
@@ -6,4 +7,15 @@ builder.SetBasePath(Directory.GetCurrentDirectory())
 
 IConfiguration config = builder.Build();
 
-Console.WriteLine(config["CoinGeckoApiSettings:ApiKey"]);
+var key = config["CoinGeckoApiSettings:ApiKey"];
+if (string.IsNullOrEmpty(key))
+{
+    throw new ArgumentNullException(nameof(key), "The key cannot be null or empty.");
+}
+
+var cryptoDataFetcher = new CryptoDataFetcher(new HttpClient(), key);
+
+var coinHistoricalData = await cryptoDataFetcher.GetHistoricalData("bitcoin");
+var coinData = await cryptoDataFetcher.GetData("bitcoin");
+
+Console.WriteLine();
