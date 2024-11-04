@@ -1,5 +1,7 @@
 ﻿using BitcoinPriceForecastingTaining;
+using BitcoinPriceForecastingTaining.Trainers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.ML;
 
 var builder = new ConfigurationBuilder();
 builder.SetBasePath(Directory.GetCurrentDirectory())
@@ -14,8 +16,17 @@ if (string.IsNullOrEmpty(key))
 }
 
 var cryptoDataFetcher = new CryptoDataFetcher(new HttpClient(), key);
-
 var coinHistoricalData = await cryptoDataFetcher.GetHistoricalData("bitcoin");
-var coinData = await cryptoDataFetcher.GetData("bitcoin");
+//var coinData = await cryptoDataFetcher.GetData("bitcoin");
+if (coinHistoricalData == null)
+{
+    throw new ArgumentNullException(nameof(coinHistoricalData), "Error when trying to get data for training.");
+}
+
+var converter = new DataConverter();
+var context = new MLContext();
+var trainer = new FastTreeTrainer(context);
+trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
+trainer.Evaluate();
 
 Console.WriteLine();
