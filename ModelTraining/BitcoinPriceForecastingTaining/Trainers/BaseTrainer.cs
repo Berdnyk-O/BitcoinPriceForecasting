@@ -5,6 +5,9 @@ namespace BitcoinPriceForecastingTaining.Trainers
 {
     internal abstract class BaseTrainer
     {
+        protected string BaseDirectory => Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName, "Models");
+        public abstract string DirectoryPath { get; }
+
         protected MLContext _context = null!;
 
         protected ITransformer _trainedModel = null!;
@@ -16,6 +19,15 @@ namespace BitcoinPriceForecastingTaining.Trainers
         }
 
         public abstract void Train(IDataView trainDataView);
+
+        public void Save(string fileName, ITransformer trainedModel, DataViewSchema schema)
+        {
+            Directory.CreateDirectory(DirectoryPath);
+
+            var filePath = Path.Combine(DirectoryPath, fileName);
+
+            _context.Model.Save(_trainedModel, _dataSplit.TrainSet.Schema, filePath);
+        }
 
         public virtual void Evaluate()
         {

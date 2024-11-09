@@ -5,6 +5,8 @@ namespace BitcoinPriceForecastingTaining.Trainers
 {
     internal class FastTreeTrainer : BaseTrainer
     {
+        public override string DirectoryPath => Path.Combine(BaseDirectory, "FastTree");
+
         public FastTreeTrainer(MLContext context) : base(context)
         {
         }
@@ -16,14 +18,14 @@ namespace BitcoinPriceForecastingTaining.Trainers
             IEstimator<ITransformer> dataProcessPipeline =
                 _context.Transforms.CopyColumns("Label", nameof(HistoricalDataRecord.Price))
                 .Append(_context.Transforms.Concatenate("Features",
-                nameof(HistoricalDataRecord.MarketCap), nameof(HistoricalDataRecord.TotalVolume)));
+                nameof(HistoricalDataRecord.MarketCap), 
+                nameof(HistoricalDataRecord.TotalVolume)));
 
             var trainer = _context.Regression.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features");
             var trainingPipeLine = dataProcessPipeline.Append(trainer);
 
             _trainedModel = trainingPipeLine.Fit(_dataSplit.TrainSet);
-
-            _context.Model.Save(_trainedModel, _dataSplit.TrainSet.Schema, "../../../Models/Model.zip");
+            Save($"FastTree_{DateTime.Now.ToString("dd.MM.yyyy_HH.mm.ss")}.zip", _trainedModel, _dataSplit.TrainSet.Schema);
         }
     }
 }
