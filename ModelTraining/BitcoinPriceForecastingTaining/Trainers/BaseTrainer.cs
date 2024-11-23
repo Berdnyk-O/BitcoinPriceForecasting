@@ -1,4 +1,5 @@
-﻿using BitcoinPriceForecastingTaining.TrainingDataSavers;
+﻿using BitcoinPriceForecastingTaining.Entities;
+using BitcoinPriceForecastingTaining.TrainingDataSavers;
 using Microsoft.ML;
 using System.Reflection;
 using static Microsoft.ML.DataOperationsCatalog;
@@ -20,7 +21,7 @@ namespace BitcoinPriceForecastingTaining.Trainers
             _context = context;
         }
 
-        public abstract void Train(IDataView trainDataView, string modelId);
+        public abstract string Train(IDataView trainDataView);
 
         public void Save(string modelName, ITransformer trainedModel, DataViewSchema schema)
         {
@@ -29,6 +30,8 @@ namespace BitcoinPriceForecastingTaining.Trainers
             var modelPath = Path.Combine(DirectoryPath, modelName);
 
             _context.Model.Save(_trainedModel, _dataSplit.TrainSet.Schema, modelPath);
+
+            
         }
 
         public virtual void Evaluate()

@@ -5,14 +5,16 @@ namespace BitcoinPriceForecastingTaining.Trainers
 {
     internal class FastTreeTrainer : BaseTrainer
     {
+        public readonly string TrainerType = "FastTree";
         public override string DirectoryPath => Path.Combine(BaseDirectory, "FastTree");
 
         public FastTreeTrainer(MLContext context) : base(context)
         {
         }
 
-        public override void Train(IDataView trainDataView, string modelId)
+        public override string Train(IDataView trainDataView)
         {
+            var modelId = DateTime.Now.ToString("dd.MM.yyyy_HH.mm.ss");
             _dataSplit = _context.Data.TrainTestSplit(trainDataView, 0.1);
 
             IEstimator<ITransformer> dataProcessPipeline =
@@ -25,7 +27,9 @@ namespace BitcoinPriceForecastingTaining.Trainers
             var trainingPipeLine = dataProcessPipeline.Append(trainer);
 
             _trainedModel = trainingPipeLine.Fit(_dataSplit.TrainSet);
-            Save($"FastTree_{modelId}.zip", _trainedModel, _dataSplit.TrainSet.Schema);
+            Save($"{TrainerType}_{modelId}.zip", _trainedModel, _dataSplit.TrainSet.Schema);
+
+            return modelId;
         }
     }
 }

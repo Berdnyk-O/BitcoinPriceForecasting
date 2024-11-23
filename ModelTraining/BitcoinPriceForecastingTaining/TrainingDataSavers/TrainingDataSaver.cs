@@ -14,11 +14,12 @@ namespace BitcoinPriceForecastingTaining.TrainingDataSavers
             
         }
 
-        public async Task SaveAsync(string directoryName, string fileName, CoinHistoricalData data)
+        public async Task SaveAsync(string trainerType, string modelId, CoinHistoricalData data)
         {
-            var directoryPath = Path.Combine(BaseDirectory, directoryName);
+            var directoryPath = Path.Combine(BaseDirectory, trainerType);
             Directory.CreateDirectory(directoryPath);
 
+            var fileName = $"{trainerType}_{modelId}";
             var filePath = Path.Combine(directoryPath, fileName);
 
             var csvLines = new List<string>();
