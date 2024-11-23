@@ -1,5 +1,6 @@
 ﻿using BitcoinPriceForecastingTaining;
 using BitcoinPriceForecastingTaining.Trainers;
+using BitcoinPriceForecastingTaining.TrainingDataSavers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.ML;
 
@@ -26,7 +27,10 @@ if (coinHistoricalData == null)
 var converter = new DataConverter();
 var context = new MLContext();
 var trainer = new FastTreeTrainer(context);
-trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
+
+var modelId = trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
+var saver = new TrainingDataSaver();
+await saver.SaveAsync(trainer.TrainerType, modelId, coinHistoricalData);
 trainer.Evaluate();
 
 Console.WriteLine();

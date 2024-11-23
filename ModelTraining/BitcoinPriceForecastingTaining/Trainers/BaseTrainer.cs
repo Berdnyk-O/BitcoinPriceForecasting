@@ -1,10 +1,16 @@
-﻿using Microsoft.ML;
+﻿using BitcoinPriceForecastingTaining.Entities;
+using BitcoinPriceForecastingTaining.TrainingDataSavers;
+using Microsoft.ML;
+using System.Reflection;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace BitcoinPriceForecastingTaining.Trainers
 {
     internal abstract class BaseTrainer
     {
+        protected string BaseDirectory => Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName, "Models");
+        public abstract string DirectoryPath { get; }
+
         protected MLContext _context = null!;
 
         protected ITransformer _trainedModel = null!;
@@ -15,7 +21,18 @@ namespace BitcoinPriceForecastingTaining.Trainers
             _context = context;
         }
 
-        public abstract void Train(IDataView trainDataView);
+        public abstract string Train(IDataView trainDataView);
+
+        public void Save(string modelName, ITransformer trainedModel, DataViewSchema schema)
+        {
+            Directory.CreateDirectory(DirectoryPath);
+
+            var modelPath = Path.Combine(DirectoryPath, modelName);
+
+            _context.Model.Save(_trainedModel, _dataSplit.TrainSet.Schema, modelPath);
+
+            
+        }
 
         public virtual void Evaluate()
         {
