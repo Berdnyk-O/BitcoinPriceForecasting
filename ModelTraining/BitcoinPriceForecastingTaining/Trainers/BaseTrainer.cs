@@ -1,16 +1,15 @@
-﻿using BitcoinPriceForecastingTaining.Entities;
-using BitcoinPriceForecastingTaining.TrainingDataSavers;
-using Microsoft.ML;
-using System.Reflection;
+﻿using Microsoft.ML;
 using static Microsoft.ML.DataOperationsCatalog;
 
 namespace BitcoinPriceForecastingTaining.Trainers
 {
     internal abstract class BaseTrainer
     {
-        protected string BaseDirectory => Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName, "Models");
-        public abstract string DirectoryPath { get; }
+        public abstract string TrainerType { get; }
+        public string DirectoryPath => Path.Combine(BaseDirectory, TrainerType);
 
+        protected string BaseDirectory => Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName, "Models");
+        
         protected MLContext _context = null!;
 
         protected ITransformer _trainedModel = null!;
@@ -45,8 +44,6 @@ namespace BitcoinPriceForecastingTaining.Trainers
                 $"Mean Squared Error: {modelMetrics.MeanSquaredError}\n" +
                 $"Rsquared: {modelMetrics.RSquared}\n" +
                 $"Root Mean Squared Error: {modelMetrics.RootMeanSquaredError}");
-
-            Console.ReadLine();
         }
     }
 }
