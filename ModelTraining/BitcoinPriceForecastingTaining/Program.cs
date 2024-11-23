@@ -1,5 +1,6 @@
 ﻿using BitcoinPriceForecastingTaining;
 using BitcoinPriceForecastingTaining.Trainers;
+using BitcoinPriceForecastingTaining.TrainingDataSavers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.ML;
 
@@ -23,10 +24,14 @@ if (coinHistoricalData == null)
     throw new ArgumentNullException(nameof(coinHistoricalData), "Error when trying to get data for training.");
 }
 
+string modelId = DateTime.Now.ToString("dd.MM.yyyy_HH.mm.ss");
+var saver = new TrainingDataSaver();
+await saver.SaveAsync("FastTree", $"FastTree_{modelId}", coinHistoricalData);
+
 var converter = new DataConverter();
 var context = new MLContext();
 var trainer = new FastTreeTrainer(context);
-trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
+trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData), modelId);
 trainer.Evaluate();
 
 Console.WriteLine();

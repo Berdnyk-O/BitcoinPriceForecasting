@@ -11,7 +11,7 @@ namespace BitcoinPriceForecastingTaining.Trainers
         {
         }
 
-        public override void Train(IDataView trainDataView)
+        public override void Train(IDataView trainDataView, string modelId)
         {
             _dataSplit = _context.Data.TrainTestSplit(trainDataView, 0.1);
 
@@ -25,7 +25,7 @@ namespace BitcoinPriceForecastingTaining.Trainers
             var trainingPipeLine = dataProcessPipeline.Append(trainer);
 
             _trainedModel = trainingPipeLine.Fit(_dataSplit.TrainSet);
-            Save($"FastTree_{DateTime.Now.ToString("dd.MM.yyyy_HH.mm.ss")}.zip", _trainedModel, _dataSplit.TrainSet.Schema);
+            Save($"FastTree_{modelId}.zip", _trainedModel, _dataSplit.TrainSet.Schema);
         }
     }
 }
