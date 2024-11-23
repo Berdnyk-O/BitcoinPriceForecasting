@@ -26,7 +26,7 @@ if (coinHistoricalData == null)
 
 var converter = new DataConverter();
 var context = new MLContext();
-var trainer = new FastForestTrainer(context);
+var trainer = new SDCATrainer(context);
 
 var modelId = trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
 var saver = new TrainingDataSaver();
