@@ -33,4 +33,4 @@ var saver = new TrainingDataSaver();
 await saver.SaveAsync(trainer.TrainerType, modelId, coinHistoricalData);
 trainer.Evaluate();
 
-Console.WriteLine($"trainer: {trainer.GetType().Name}\nmodelId: {modelId}");
+Console.WriteLine($"\ntrainer: {trainer.GetType().Name}\nmodelId: {modelId}");

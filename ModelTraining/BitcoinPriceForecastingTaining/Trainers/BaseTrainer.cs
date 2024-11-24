@@ -29,8 +29,6 @@ namespace BitcoinPriceForecastingTaining.Trainers
             var modelPath = Path.Combine(DirectoryPath, modelName);
 
             _context.Model.Save(_trainedModel, _dataSplit.TrainSet.Schema, modelPath);
-
-            
         }
 
         public virtual void Evaluate()
