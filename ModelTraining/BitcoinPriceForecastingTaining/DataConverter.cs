@@ -15,6 +15,7 @@ namespace BitcoinPriceForecastingTaining
             {
                 records.Add(new HistoricalDataRecord
                 {
+                    Date = data.Prices[i][0],
                     Price = data.Prices[i][1],
                     MarketCap = data.MarketCaps[i][1],
                     TotalVolume = data.TotalVolumes[i][1]

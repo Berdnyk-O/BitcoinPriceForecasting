@@ -20,6 +20,7 @@ namespace BitcoinPriceForecastingTaining.Trainers
             IEstimator<ITransformer> dataProcessPipeline =
                 _context.Transforms.CopyColumns("Label", nameof(HistoricalDataRecord.Price))
                 .Append(_context.Transforms.Concatenate("Features",
+                nameof(HistoricalDataRecord.Date),
                 nameof(HistoricalDataRecord.MarketCap),
                 nameof(HistoricalDataRecord.TotalVolume)));
 

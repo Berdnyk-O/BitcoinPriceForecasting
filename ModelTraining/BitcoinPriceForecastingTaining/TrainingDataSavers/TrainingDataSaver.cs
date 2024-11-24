@@ -23,7 +23,7 @@ namespace BitcoinPriceForecastingTaining.TrainingDataSavers
 
             var csvLines = new List<string>();
 
-            csvLines.Add("Price_Timestamp,Price,MarketCap_Timestamp,MarketCap,TotalVolume_Timestamp,TotalVolume");
+            csvLines.Add("Timestamp,Price,MarketCap,TotalVolume");
 
             int maxRows = Math.Max(data.Prices.Count, Math.Max(data.MarketCaps.Count, data.TotalVolumes.Count));
 
@@ -35,10 +35,11 @@ namespace BitcoinPriceForecastingTaining.TrainingDataSavers
 
                 string line = string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0},{1},{2},{3},{4},{5}",
-                    price[0], price[1],
-                    marketCap[0], marketCap[1],
-                    totalVolume[0], totalVolume[1]
+                    "{0},{1},{2},{3}",
+                    price[0],
+                    price[1],
+                    marketCap[1],
+                    totalVolume[1]
                 );
 
                 csvLines.Add(line);
