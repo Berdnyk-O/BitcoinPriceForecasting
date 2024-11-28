@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.Data;
-namespace BitcoinPriceForecastingTaining.Entities
+
+namespace Common.Entities
 {
     public class HistoricalDataRecord
     {

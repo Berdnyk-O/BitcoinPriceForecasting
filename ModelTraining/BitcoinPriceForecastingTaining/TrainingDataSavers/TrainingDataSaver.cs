@@ -1,4 +1,4 @@
-﻿using BitcoinPriceForecastingTaining.Entities;
+﻿using Common.Entities;
 using System.Globalization;
 using System.Text;
 
@@ -10,7 +10,6 @@ namespace BitcoinPriceForecastingTaining.TrainingDataSavers
 
         public TrainingDataSaver()
         {
-            
         }
 
         public async Task SaveAsync(string trainerType, string modelId, CoinHistoricalData data)

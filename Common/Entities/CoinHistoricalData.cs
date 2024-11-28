@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace BitcoinPriceForecastingTaining.Entities
+namespace Common.Entities
 {
     public class CoinHistoricalData
     {

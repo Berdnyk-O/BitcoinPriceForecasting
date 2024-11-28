@@ -1,4 +1,4 @@
-﻿using BitcoinPriceForecastingTaining.Entities;
+﻿using Common.Entities;
 using Microsoft.ML;
 
 namespace BitcoinPriceForecastingTaining.Trainers
