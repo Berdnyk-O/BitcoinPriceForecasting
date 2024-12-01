@@ -7,7 +7,7 @@ namespace BitcoinPriceForecastingTaining.Trainers
     {
         public override string TrainerType => "SDCA";
 
-        public SDCATrainer(MLContext context) : base(context)
+        public SDCATrainer(MLContext context, string resourceFolderPath) : base(context, resourceFolderPath)
         {
         }
 

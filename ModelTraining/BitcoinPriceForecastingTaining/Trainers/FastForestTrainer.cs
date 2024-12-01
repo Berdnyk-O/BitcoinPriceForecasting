@@ -7,7 +7,7 @@ namespace BitcoinPriceForecastingTaining.Trainers
     {
         public override string TrainerType => "FastForest";
 
-        public FastForestTrainer(MLContext context) : base(context)
+        public FastForestTrainer(MLContext context, string resourceFolderPath) : base(context, resourceFolderPath)
         {
         }
         

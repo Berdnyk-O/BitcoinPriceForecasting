@@ -8,16 +8,19 @@ namespace BitcoinPriceForecastingTaining.Trainers
         public abstract string TrainerType { get; }
         public string DirectoryPath => Path.Combine(BaseDirectory, TrainerType);
 
-        protected string BaseDirectory => Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName, "Models");
-        
+        protected string BaseDirectory => Path.Combine(_resourceFolderPath, "Models");
+
         protected MLContext _context = null!;
 
         protected ITransformer _trainedModel = null!;
         protected TrainTestData _dataSplit;
 
-        protected BaseTrainer(MLContext context)
+        private string _resourceFolderPath;
+
+        protected BaseTrainer(MLContext context, string resourceFolderPath)
         {
             _context = context;
+            _resourceFolderPath = resourceFolderPath;
         }
 
         public abstract string Train(IDataView trainDataView);
