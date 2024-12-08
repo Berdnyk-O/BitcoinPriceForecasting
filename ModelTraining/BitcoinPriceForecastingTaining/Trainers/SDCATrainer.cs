@@ -1,10 +1,5 @@
-﻿using BitcoinPriceForecastingTaining.Entities;
+﻿using Common.Entities;
 using Microsoft.ML;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BitcoinPriceForecastingTaining.Trainers
 {
@@ -12,7 +7,7 @@ namespace BitcoinPriceForecastingTaining.Trainers
     {
         public override string TrainerType => "SDCA";
 
-        public SDCATrainer(MLContext context) : base(context)
+        public SDCATrainer(MLContext context, string resourceFolderPath) : base(context, resourceFolderPath)
         {
         }
 

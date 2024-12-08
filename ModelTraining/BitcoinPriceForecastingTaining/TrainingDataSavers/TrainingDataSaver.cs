@@ -1,4 +1,4 @@
-﻿using BitcoinPriceForecastingTaining.Entities;
+﻿using Common.Entities;
 using System.Globalization;
 using System.Text;
 
@@ -6,11 +6,13 @@ namespace BitcoinPriceForecastingTaining.TrainingDataSavers
 {
     internal class TrainingDataSaver
     {
-        protected string BaseDirectory => Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName, "Data");
+        protected string BaseDirectory => Path.Combine(_resourceFolderPath, "Data");
 
-        public TrainingDataSaver()
+        private string _resourceFolderPath;
+
+        public TrainingDataSaver(string resourceFolderPath)
         {
-            
+            _resourceFolderPath = resourceFolderPath;
         }
 
         public async Task SaveAsync(string trainerType, string modelId, CoinHistoricalData data)

@@ -11,9 +11,14 @@ builder.SetBasePath(Directory.GetCurrentDirectory())
 IConfiguration config = builder.Build();
 
 var key = config["CoinGeckoApiSettings:ApiKey"];
+var resourceFolderPath = config["ResourceFolderPath"];
 if (string.IsNullOrEmpty(key))
 {
     throw new ArgumentNullException(nameof(key), "The key cannot be null or empty.");
+}
+if (string.IsNullOrEmpty(resourceFolderPath))
+{
+    throw new ArgumentException(nameof(resourceFolderPath), "The path to the resource file cannot be empty.");
 }
 
 var cryptoDataFetcher = new CryptoDataFetcher(new HttpClient(), key);
@@ -26,10 +31,10 @@ if (coinHistoricalData == null)
 
 var converter = new DataConverter();
 var context = new MLContext();
-var trainer = new SDCATrainer(context);
+var trainer = new SDCATrainer(context, resourceFolderPath);
 
 var modelId = trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
-var saver = new TrainingDataSaver();
+var saver = new TrainingDataSaver(resourceFolderPath);
 await saver.SaveAsync(trainer.TrainerType, modelId, coinHistoricalData);
 trainer.Evaluate();
 

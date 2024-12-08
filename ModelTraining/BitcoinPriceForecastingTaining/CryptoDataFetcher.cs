@@ -1,4 +1,4 @@
-﻿using BitcoinPriceForecastingTaining.Entities;
+﻿using Common.Entities;
 using System.Text.Json;
 
 namespace BitcoinPriceForecastingTaining
