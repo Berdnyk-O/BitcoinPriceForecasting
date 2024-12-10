@@ -1,7 +1,7 @@
 ﻿using Common.Entities;
 using System.Text.Json;
 
-namespace BitcoinPriceForecastingTaining
+namespace Common
 {
     public class CryptoDataFetcher
     {

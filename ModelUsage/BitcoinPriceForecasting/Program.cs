@@ -1,4 +1,5 @@
 using BitcoinPriceForecasting.Components;
+using Common;
 using Common.Entities;
 using Microsoft.Extensions.ML;
 
@@ -11,6 +12,11 @@ builder.Services.AddPredictionEnginePool<HistoricalDataRecord, HictoricalDataPre
     .FromFile(modelName: "FastTree",
     filePath: builder.Configuration["ModelPath:SDCA"],
     watchForChanges: true);
+
+builder.Services.AddScoped<CryptoDataFetcher>(provider =>
+{
+    return new CryptoDataFetcher(new HttpClient(), "sd");
+});
 
 var app = builder.Build();
 

@@ -13,6 +13,9 @@ namespace Common.Entities
         [JsonPropertyName("name")]
         public string Name { get; set; } = null!;
 
+        [JsonPropertyName("genesis_date")]
+        public string GenesisDate { get; set; } = null!;
+
         [JsonPropertyName("market_data")]
         public MarketData MarketData { get; set; } = null!;
     }

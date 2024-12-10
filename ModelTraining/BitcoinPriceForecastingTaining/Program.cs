@@ -1,6 +1,7 @@
 ﻿using BitcoinPriceForecastingTaining;
 using BitcoinPriceForecastingTaining.Trainers;
 using BitcoinPriceForecastingTaining.TrainingDataSavers;
+using Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.ML;
 

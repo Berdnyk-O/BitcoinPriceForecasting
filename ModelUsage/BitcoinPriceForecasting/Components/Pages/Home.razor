@@ -1,7 +1,39 @@
 ﻿@page "/"
+@using Common
+@using Common.Entities
+@inject CryptoDataFetcher Datafatcher
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Bitcoin Info</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Інформація про біткоїн</h1>
 
-Welcome to your new app.
+@if (_coinData == null)
+{
+    <p>Немає інформації</p>
+}
+else
+{
+    <p>
+        Дата створення: @_coinData.GenesisDate<br>
+        Найвища ціна за увеь час: @_coinData.MarketData.AthPrice["usd"] доларів<br>
+        Поточна ціна: @_coinData.MarketData.CurrentPrice["usd"] доларів<br>
+        Найвища ціна за 24 годині: @_coinData.MarketData.High24h["usd"] доларів<br>
+        Найнища ціна за 24 годині: @_coinData.MarketData.Low24h["usd"] доларів<br>
+        Price change 24 hours: @_coinData.MarketData.PriceChange24h доларів<br>
+        Зміна ціни у відсотках за 24 години: @_coinData.MarketData.PriceChangePercentage24h %<br>
+        Зміна ціни у відсотках за 7 днів: @_coinData.MarketData.PriceChangePercentage7d %<br>
+        Зміна ціни у відсотках за 30 днів: @_coinData.MarketData.PriceChangePercentage30d %<br>
+        Зміна ціни у відсотках за 60 днів: @_coinData.MarketData.PriceChangePercentage60d %<br>
+        Зміна ціни у відсотках за  200 днів: @_coinData.MarketData.PriceChangePercentage200d %<br>
+    </p>
+}
+
+@code{
+    private const string BitcoinId = "bitcoin";
+    protected CoinData? _coinData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _coinData = await Datafatcher.GetData(BitcoinId);
+    }
+}
