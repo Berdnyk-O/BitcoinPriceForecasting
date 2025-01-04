@@ -1,6 +1,8 @@
 ﻿@page "/"
+@using BitcoinPriceForecasting.ViewModels
 @using Common
 @using Common.Entities
+@using System.Globalization
 @inject CryptoDataFetcher Datafatcher
 
 <PageTitle>Bitcoin Info</PageTitle>
@@ -26,14 +28,71 @@ else
         Зміна ціни у відсотках за 60 днів: @_coinData.MarketData.PriceChangePercentage60d %<br>
         Зміна ціни у відсотках за  200 днів: @_coinData.MarketData.PriceChangePercentage200d %<br>
     </p>
+
+    <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+        <RadzenCard Variant="Variant.Outlined" style="@($"width: 2000px")">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
+                    <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenCard>
+
+        <RadzenChart>
+            <RadzenChartTooltipOptions/>
+            <RadzenLineSeries Smooth="true" Data="@bitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90"/>
+            <RadzenValueAxis Formatter="@FormatAsUSD">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Prices" />
+            </RadzenValueAxis>
+        </RadzenChart>
+    </RadzenStack>
 }
+
+
 
 @code{
     private const string BitcoinId = "bitcoin";
-    protected CoinData? _coinData;
+
+    private CoinData? _coinData;
+    private CoinHistoricalData? _coinHistoricalData;
+    private HistoricalDataViewModel _coinHistoricalDataVM;
+    bool showDataLabels = false;
+    BitcoinPriceDataViewModel[] bitcoinPrices;
 
     protected override async Task OnInitializedAsync()
     {
         _coinData = await Datafatcher.GetData(BitcoinId);
+        _coinHistoricalData = await Datafatcher.GetHistoricalData(BitcoinId);
+
+        var bitcoinPrices1 = _coinHistoricalData.Prices
+        .Select(x => new BitcoinPriceDataViewModel
+        {
+            Date = UnixTimeStampToDateOnly(Convert.ToDouble(x[0])).ToString(),
+            Price = Convert.ToDouble(x[1])
+        })
+        .ToArray();
+
+
+        bitcoinPrices = bitcoinPrices1.Skip(bitcoinPrices1.Length / 2).ToArray();
+    }
+
+    string FormatAsUSD(object value)
+    {
+        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+
+
+    public DateTime UnixTimeStampToDateOnly(double unixTimeStamp)
+    {   
+        unixTimeStamp /= 1000;
+        DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+        return dateTime;        
     }
 }

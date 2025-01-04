@@ -2,6 +2,7 @@ using BitcoinPriceForecasting.Components;
 using Common;
 using Common.Entities;
 using Microsoft.Extensions.ML;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,8 @@ builder.Services.AddScoped<CryptoDataFetcher>(provider =>
 {
     return new CryptoDataFetcher(new HttpClient(), "sd");
 });
+
+builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
 
