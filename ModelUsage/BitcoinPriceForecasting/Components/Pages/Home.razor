@@ -1,9 +1,13 @@
 ﻿@page "/"
+
 @using BitcoinPriceForecasting.ViewModels
 @using Common
 @using Common.Entities
 @using System.Globalization
+@using Microsoft.Extensions.ML
+
 @inject CryptoDataFetcher Datafatcher
+@inject PredictionEnginePool<HistoricalDataRecord, HictoricalDataPredictionResult> PredictionEnginePool
 
 <PageTitle>Bitcoin Info</PageTitle>
 
@@ -29,23 +33,66 @@ else
         Зміна ціни у відсотках за  200 днів: @_coinData.MarketData.PriceChangePercentage200d %<br>
     </p>
 
-    <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
-        <RadzenCard Variant="Variant.Outlined" style="@($"width: 2000px")">
+    <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12" Gap="4rem">
+        <RadzenCard Variant="Variant.Outlined">
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
+                    <RadzenCheckBox @bind-Value="@_showDataLabels" Name="dataLabels"></RadzenCheckBox>
                     <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
                 </RadzenStack>
             </RadzenStack>
         </RadzenCard>
 
-        <RadzenChart>
+        <RadzenChart class="mt-0">
+            <h3>Ціна біткоїна за місяць</h3>
             <RadzenChartTooltipOptions/>
-            <RadzenLineSeries Smooth="true" Data="@bitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+            <RadzenLineSeries Smooth="true" Data="@_monthlyBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
                 <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
-                <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
             </RadzenLineSeries>
             <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90"/>
+            <RadzenValueAxis Formatter="@FormatAsUSD">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Prices" />
+            </RadzenValueAxis>
+        </RadzenChart>
+
+        <RadzenChart>
+            <h3>Середня ціна за останні 10 місяців</h3>
+            <RadzenChartTooltipOptions />
+            <RadzenLineSeries Smooth="true" Data="@_lastTenMonthAvarageBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90" />
+            <RadzenValueAxis Formatter="@FormatAsUSD">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Prices" />
+            </RadzenValueAxis>
+        </RadzenChart>
+
+        <RadzenChart>
+            <h3>Максимальна ціна за останні 10 місяців</h3>
+            <RadzenChartTooltipOptions />
+            <RadzenLineSeries Smooth="true" Data="@_lastTenMonthMaxBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90" />
+            <RadzenValueAxis Formatter="@FormatAsUSD">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Prices" />
+            </RadzenValueAxis>
+        </RadzenChart>
+
+        <RadzenChart>
+            <h3>Прогнозована ціна біткоїна</h3>
+            <RadzenChartTooltipOptions />
+            <RadzenLineSeries Smooth="true" Data="@_predictedMonthlyBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90" />
             <RadzenValueAxis Formatter="@FormatAsUSD">
                 <RadzenGridLines Visible="true" />
                 <RadzenAxisTitle Text="Prices" />
@@ -54,35 +101,74 @@ else
     </RadzenStack>
 }
 
-
-
 @code{
     private const string BitcoinId = "bitcoin";
 
     private CoinData? _coinData;
     private CoinHistoricalData? _coinHistoricalData;
-    private HistoricalDataViewModel _coinHistoricalDataVM;
-    bool showDataLabels = false;
-    BitcoinPriceDataViewModel[] bitcoinPrices;
+    private BitcoinPriceDataViewModel[] _monthlyBitcoinPrices;
+    private BitcoinPriceDataViewModel[] _predictedMonthlyBitcoinPrices;
+    private BitcoinPriceDataViewModel[] _lastTenMonthAvarageBitcoinPrices;
+    private BitcoinPriceDataViewModel[] _lastTenMonthMaxBitcoinPrices;
+    private bool _showDataLabels = false;
 
     protected override async Task OnInitializedAsync()
     {
         _coinData = await Datafatcher.GetData(BitcoinId);
         _coinHistoricalData = await Datafatcher.GetHistoricalData(BitcoinId);
 
-        var bitcoinPrices1 = _coinHistoricalData.Prices
-        .Select(x => new BitcoinPriceDataViewModel
+        var bitcoinhistoricalData = _coinHistoricalData.Prices
+            .Select(x => new BitcoinPriceDataViewModel
+            {
+                    Date = UnixTimeStampToDateOnly(Convert.ToDouble(x[0])).ToString("yyyy-MM-dd"),
+                Price = Convert.ToDouble(x[1])
+            })
+            .ToArray();
+
+        _lastTenMonthAvarageBitcoinPrices = bitcoinhistoricalData
+            .GroupBy(data => DateTime.Parse(data.Date).ToString("yyyy-MM"))
+            .Take(10)
+            .Select(group => new BitcoinPriceDataViewModel
+            {
+                Date = group.Key,
+                Price = group.Average(x => x.Price) 
+            })
+            .ToArray();
+
+        _lastTenMonthMaxBitcoinPrices = bitcoinhistoricalData
+            .GroupBy(data => DateTime.Parse(data.Date).ToString("yyyy-MM"))
+            .Take(10)
+            .Select(group => new BitcoinPriceDataViewModel
+                {
+                    Date = group.Key,
+                    Price = group.Max(x => x.Price)
+                })
+            .ToArray();
+
+        _monthlyBitcoinPrices = bitcoinhistoricalData
+           .Where(data => DateTime.Parse(data.Date) > DateTime.Now.AddMonths(-1))
+           .ToArray();
+
+        _predictedMonthlyBitcoinPrices = new BitcoinPriceDataViewModel[_monthlyBitcoinPrices.Length];
+        var _engine = PredictionEnginePool.GetPredictionEngine("FastTree");
+        for (int i = 0; i < _monthlyBitcoinPrices.Length; i++)
         {
-            Date = UnixTimeStampToDateOnly(Convert.ToDouble(x[0])).ToString(),
-            Price = Convert.ToDouble(x[1])
-        })
-        .ToArray();
-
-
-        bitcoinPrices = bitcoinPrices1.Skip(bitcoinPrices1.Length / 2).ToArray();
+            HistoricalDataRecord dataRecord = new()
+                {
+                    Date = new DateTimeOffset(DateTime.Parse(_monthlyBitcoinPrices[i].Date)).ToUnixTimeSeconds(),
+                    MarketCap = 0,
+                    TotalVolume= 0,
+                };
+            HictoricalDataPredictionResult v = _engine.Predict(dataRecord);
+            _predictedMonthlyBitcoinPrices[i] = new BitcoinPriceDataViewModel
+                {
+                    Date = _monthlyBitcoinPrices[i].Date,
+                    Price = v.PredictedValue,
+                };
+        }
     }
 
-    string FormatAsUSD(object value)
+    private string FormatAsUSD(object value)
     {
         return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
     }
@@ -94,5 +180,10 @@ else
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
         return dateTime;        
+    }
+
+    public long DateTimeToUnixTimestamp(DateTime dateTime)
+    {
+        return new DateTimeOffset(dateTime).ToUnixTimeSeconds();
     }
 }
