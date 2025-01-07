@@ -18,5 +18,17 @@ namespace Common.Entities
 
         [JsonPropertyName("market_data")]
         public MarketData MarketData { get; set; } = null!;
+
+        [JsonPropertyName("image")]
+        public CoinImage Image { get; set; } = null!;
+
+        [JsonPropertyName("links")]
+        public CoinLinks Links { get; set; } = null!;
+
+        [JsonPropertyName("hashing_algorithm")]
+        public string HashingAlgorithm { get; set; } = null!;
+
+        [JsonPropertyName("description")]
+        public CoinDescription Description { get; set; } = null!;
     }
 }
