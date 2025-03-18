@@ -32,7 +32,7 @@ if (coinHistoricalData == null)
 
 var converter = new DataConverter();
 var context = new MLContext();
-var trainer = new SDCATrainer(context, resourceFolderPath);
+var trainer = new ForecastBySsaTrainer(context, resourceFolderPath);
 
 var modelId = trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
 var saver = new TrainingDataSaver(resourceFolderPath);
