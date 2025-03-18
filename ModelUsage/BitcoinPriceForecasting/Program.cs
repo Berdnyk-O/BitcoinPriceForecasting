@@ -1,6 +1,8 @@
+using BitcoinPriceForecasting;
 using BitcoinPriceForecasting.Components;
 using Common;
 using Common.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ML;
 using Radzen;
 
@@ -13,6 +15,12 @@ builder.Services.AddPredictionEnginePool<HistoricalDataRecord, HictoricalDataPre
     .FromFile(modelName: "FastTree",
     filePath: builder.Configuration["ModelPath:SDCA"],
     watchForChanges: true);
+
+builder.Services.AddScoped<TimeSeriesForecastingService>(serviceProvider =>
+{
+    var filePath = builder.Configuration["ModelPath:ForecastBySsa"];
+    return new TimeSeriesForecastingService(filePath);
+});
 
 builder.Services.AddScoped<CryptoDataFetcher>(provider =>
 {
