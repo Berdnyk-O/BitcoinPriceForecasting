@@ -5,9 +5,11 @@
 @using Common.Entities
 @using System.Globalization
 @using Microsoft.Extensions.ML
+@using Microsoft.ML
+@using Microsoft.ML.Transforms.TimeSeries
 
 @inject CryptoDataFetcher Datafatcher
-@inject PredictionEnginePool<HistoricalDataRecord, HictoricalDataPredictionResult> PredictionEnginePool
+@* @inject PredictionEnginePool<HistoricalDataRecord, HictoricalDataSsaPredictionResult> PredictionEnginePool *@
 
 <PageTitle>Bitcoin Info</PageTitle>
 
@@ -50,7 +52,6 @@ else
             <p>@repo </p>
             <br>
         }
-
     </p>
 
     <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12" Gap="4rem">
@@ -170,21 +171,49 @@ else
            .ToArray();
 
         _predictedMonthlyBitcoinPrices = new BitcoinPriceDataViewModel[_monthlyBitcoinPrices.Length];
-        var _engine = PredictionEnginePool.GetPredictionEngine("FastTree");
+        //var _engine = PredictionEnginePool.GetPredictionEngine("TrainedModel");
+
+        // for (int i = 0; i < _monthlyBitcoinPrices.Length; i++)
+        // {
+        //     HistoricalDataRecord dataRecord = new()
+        //         {
+        //             Date = new DateTimeOffset(DateTime.Parse(_monthlyBitcoinPrices[i].Date)).ToUnixTimeSeconds(),
+        //             MarketCap = GetAverageMarketCapLastMonth(),
+        //             TotalVolume = GetAverageTotalVolumeLastMonth(),
+        //         };
+        //     HictoricalDataPredictionResult v = _engine.Predict(dataRecord);
+        //     _predictedMonthlyBitcoinPrices[i] = new BitcoinPriceDataViewModel
+        //         {
+        //             Date = _monthlyBitcoinPrices[i].Date,
+        //             Price = v.PredictedValue,
+        //         };
+        // }
+
+        var mlContext = new MLContext();
+        using var stream = File.OpenRead("../../Common/Resources/Models/ForecastBySsa/ForecastBySsa_18.03.2025_19.49.20.zip");
+        var trainedModel = mlContext.Model.Load(stream, out var modelSchema);
+        var forecastEngine = trainedModel
+            .CreateTimeSeriesEngine<HistoricalDataRecord,HictoricalDataSsaPredictionResult>(mlContext);
+
+
+        HistoricalDataRecord dataRecord = new()
+            {
+                Date = new DateTimeOffset(DateTime.Parse(_monthlyBitcoinPrices[_monthlyBitcoinPrices.Length-1].Date)).ToUnixTimeSeconds(),
+                MarketCap = GetAverageMarketCapLastMonth(),
+                TotalVolume = GetAverageTotalVolumeLastMonth(),
+            };
+
+
+        var v = forecastEngine.Predict();
+        Console.WriteLine(_monthlyBitcoinPrices.Length);
+        Console.WriteLine(v.Forecast.Length);
 
         for (int i = 0; i < _monthlyBitcoinPrices.Length; i++)
         {
-            HistoricalDataRecord dataRecord = new()
-                {
-                    Date = new DateTimeOffset(DateTime.Parse(_monthlyBitcoinPrices[i].Date)).ToUnixTimeSeconds(),
-                    MarketCap = GetAverageMarketCapLastMonth(),
-                    TotalVolume = GetAverageTotalVolumeLastMonth(),
-                };
-            HictoricalDataPredictionResult v = _engine.Predict(dataRecord);
             _predictedMonthlyBitcoinPrices[i] = new BitcoinPriceDataViewModel
                 {
                     Date = _monthlyBitcoinPrices[i].Date,
-                    Price = v.PredictedValue,
+                    Price = v.Forecast[i],
                 };
         }
     }
