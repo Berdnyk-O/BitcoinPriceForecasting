@@ -12,8 +12,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddPredictionEnginePool<HistoricalDataRecord, HictoricalDataPredictionResult>()
-    .FromFile(modelName: "FastTree",
-    filePath: builder.Configuration["ModelPath:SDCA"],
+    .FromFile(modelName: "FastForest",
+    filePath: builder.Configuration["ModelPath:FastForest"],
     watchForChanges: true);
 
 builder.Services.AddScoped<TimeSeriesForecastingService>(serviceProvider =>
