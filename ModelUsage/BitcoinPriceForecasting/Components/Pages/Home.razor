@@ -21,38 +21,70 @@
 }
 else
 {
-    <p>
-        Опис: @_coinData.Description.English<br>
-        <img src="@_coinData.Image.Large" alt="Cryptocurrency" style="max-width: 300px; height: auto;" />
-        <br>
-        Дата створення: @_coinData.GenesisDate<br>
-        Найвища ціна за увеь час: @_coinData.MarketData.AthPrice["usd"] доларів<br>
-        Поточна ціна: @_coinData.MarketData.CurrentPrice["usd"] доларів<br>
-        Найвища ціна за 24 годині: @_coinData.MarketData.High24h["usd"] доларів<br>
-        Найнища ціна за 24 годині: @_coinData.MarketData.Low24h["usd"] доларів<br>
-        Price change 24 hours: @_coinData.MarketData.PriceChange24h доларів<br>
-        Зміна ціни у відсотках за 24 години: @_coinData.MarketData.PriceChangePercentage24h %<br>
-        Зміна ціни у відсотках за 7 днів: @_coinData.MarketData.PriceChangePercentage7d %<br>
-        Зміна ціни у відсотках за 30 днів: @_coinData.MarketData.PriceChangePercentage30d %<br>
-        Зміна ціни у відсотках за 60 днів: @_coinData.MarketData.PriceChangePercentage60d %<br>
-        Зміна ціни у відсотках за  200 днів: @_coinData.MarketData.PriceChangePercentage200d %<br>
-        <br>
-        Білий лист:  @_coinData.Links.Whitepaper<br>
-        Алгоритм хешування: @_coinData.HashingAlgorithm<br>
-        GitHub репозиторії:<br>
-        @foreach (var repo in _coinData.Links.Repositories.GitHub)
-        {
-            <p>@repo</p>
-            <br>
-        }
+    <div class="custom-container">
+        <h2>Опис:</h2>
+        <p>
+            <img src="@_coinData.Image.Large" alt="Cryptocurrency" class="logo" />
+            @_coinData.Description.English
+        </p>
+        
+        <p class="text">
+            
+        </p>
+    </div>
+    <div class="custom-container">
+        <h2>Основна інформація:</h2>
+        <ol class="rectangle-list">
+            <li><a href="">Дата створення: @_coinData.GenesisDate</a></li>
+            <li><a href="">Найвища ціна за увеь час: @_coinData.MarketData.AthPrice["usd"] доларів</a></li>
+            <li><a href="">Поточна ціна: @_coinData.MarketData.CurrentPrice["usd"] доларів</a></li>
+            <li><a href="">Найвища ціна за 24 години: @_coinData.MarketData.High24h["usd"] доларів</a></li>
+            <li><a href="">Найнища ціна за 24 години: @_coinData.MarketData.Low24h["usd"] доларів </a></li>
+            <li><a href="">Зміна ціни за 24 години: @_coinData.MarketData.PriceChange24h доларів</a></li>
+            <li><a href="">Зміна ціни у відсотках за 24 години: @_coinData.MarketData.PriceChangePercentage24h %</a></li>
+            <li><a href="">Зміна ціни у відсотках за 7 днів: @_coinData.MarketData.PriceChangePercentage7d %</a></li>
+            <li><a href="">Зміна ціни у відсотках за 30 днів:@_coinData.MarketData.PriceChangePercentage30d %</a></li>
+            <li><a href="">Зміна ціни у відсотках за 60 днів:@_coinData.MarketData.PriceChangePercentage60d %</a></li>
+            <li><a href="">Зміна ціни у відсотках за 20 днів:@_coinData.MarketData.PriceChangePercentage200d %</a></li>
+        </ol>
+    </div>
 
-        Bitbucket  репозиторії:<br>
-        @foreach (var repo in _coinData.Links.Repositories.Bitbucket)
-        {
-            <p>@repo </p>
-            <br>
-        }
-    </p>
+    <div class="custom-container">
+        <h2>Технічна інформація:</h2>
+        <ol class="rectangle-list">
+            <li><a href="@_coinData.Links.Whitepaper">Білий лист: @_coinData.Links.Whitepaper</a></li>
+            <li><a href="#">Алгоритм хешування: @_coinData.HashingAlgorithm</a></li>
+        </ol>
+        <ol class="rectangle-list">
+                GitHub репозиторії:
+                    @if (_coinData.Links.Repositories.GitHub != null && _coinData.Links.Repositories.GitHub.Any())
+                    {
+                        foreach (var repo in _coinData.Links.Repositories.GitHub)
+                        {
+                            <li><a href="@repo" target="_blank">@repo</a></li>
+                        }
+                    }
+                    else
+                    {
+                        <li><a href="#">Відсутні репозиторії</a></li>
+                    }
+        </ol>
+        <ol class="rectangle-list">
+                Bitbucket репозиторії:
+                    @if (_coinData.Links.Repositories.Bitbucket != null && _coinData.Links.Repositories.Bitbucket.Any())
+                    {
+                        foreach (var repo in _coinData.Links.Repositories.Bitbucket)
+                        {
+                            <li><a href="@repo" target="_blank">@repo</a></li>
+                        }
+                    }
+                    else
+                    {
+                        <li><a href="#">Відсутні репозиторії</a></li>
+                    }
+        </ol>
+    </div>
+    
 
     <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12" Gap="4rem">
         <RadzenCard Variant="Variant.Outlined">
@@ -234,5 +266,4 @@ else
 
         return averageMarketCap;
     }
-
 }
