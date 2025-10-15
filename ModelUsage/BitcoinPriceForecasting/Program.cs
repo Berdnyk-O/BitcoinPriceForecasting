@@ -22,10 +22,12 @@ builder.Services.AddScoped<TimeSeriesForecastingService>(serviceProvider =>
     return new TimeSeriesForecastingService(filePath);
 });
 
-builder.Services.AddScoped<CryptoDataFetcher>(provider =>
+builder.Services.AddSingleton<CryptoDataFetcher>(provider =>
 {
     return new CryptoDataFetcher(new HttpClient(), "sd");
 });
+
+builder.Services.AddSingleton<CryptoDataStore>();
 
 builder.Services.AddRadzenComponents();
 

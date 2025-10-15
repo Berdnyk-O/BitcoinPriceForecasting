@@ -8,7 +8,7 @@
 @using Microsoft.ML
 @using Microsoft.ML.Transforms.TimeSeries
 
-@inject CryptoDataFetcher Datafatcher
+@inject CryptoDataStore CryptoDataStore
 @inject TimeSeriesForecastingService ForecastService
 
 <PageTitle>Bitcoin Info</PageTitle>
@@ -82,9 +82,6 @@
 
 @code {
     private const string BitcoinId = "bitcoin";
-
-    private CoinData? _coinData;
-    private CoinHistoricalData? _coinHistoricalData;
     private BitcoinPriceDataViewModel[] _monthlyBitcoinPrices;
     private BitcoinPriceDataViewModel[] _predictedMonthlyBitcoinPrices;
     private BitcoinPriceDataViewModel[] _lastTenMonthAvarageBitcoinPrices;
@@ -93,10 +90,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _coinData = await Datafatcher.GetData(BitcoinId);
-        _coinHistoricalData = await Datafatcher.GetHistoricalData(BitcoinId);
+        await CryptoDataStore.InitializeAsync();
 
-        var bitcoinhistoricalData = _coinHistoricalData.Prices
+        var bitcoinhistoricalData = CryptoDataStore.CoinHistoricalData.Prices
             .Select(x => new BitcoinPriceDataViewModel
                 {
                     Date = UnixTimeStampToDateOnly(Convert.ToDouble(x[0])).ToString("yyyy-MM-dd"),
@@ -173,7 +169,7 @@
     {
         var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeMilliseconds();
 
-        var averageMarketCap = _coinHistoricalData.MarketCaps
+        var averageMarketCap = CryptoDataStore.CoinHistoricalData.MarketCaps
             .Where(mc => mc[0] >= thirtyDaysAgo)
             .Select(mc => mc[1])
             .DefaultIfEmpty()
@@ -186,7 +182,7 @@
     {
         var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeMilliseconds();
 
-        var averageMarketCap = _coinHistoricalData.MarketCaps
+        var averageMarketCap = CryptoDataStore.CoinHistoricalData.MarketCaps
             .Where(mc => mc[0] >= thirtyDaysAgo)
             .Select(mc => mc[1])
             .DefaultIfEmpty()

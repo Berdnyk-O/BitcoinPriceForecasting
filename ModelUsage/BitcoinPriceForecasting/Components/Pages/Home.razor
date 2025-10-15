@@ -8,7 +8,7 @@
 @using Microsoft.ML
 @using Microsoft.ML.Transforms.TimeSeries
 
-@inject CryptoDataFetcher Datafatcher
+@inject CryptoDataStore CryptoDataStore
 @inject PredictionEnginePool<HistoricalDataRecord, HictoricalDataPredictionResult> PredictionEnginePool
 
 <PageTitle>Bitcoin Info</PageTitle>
@@ -167,8 +167,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _coinData = await Datafatcher.GetData(BitcoinId);
-        _coinHistoricalData = await Datafatcher.GetHistoricalData(BitcoinId);
+        await CryptoDataStore.InitializeAsync();
+
+        _coinData = CryptoDataStore.CoinData;
+        _coinHistoricalData = CryptoDataStore.CoinHistoricalData;
 
         var bitcoinhistoricalData = _coinHistoricalData.Prices
             .Select(x => new BitcoinPriceDataViewModel
