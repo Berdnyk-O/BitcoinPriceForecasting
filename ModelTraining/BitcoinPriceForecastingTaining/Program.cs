@@ -2,6 +2,7 @@
 using BitcoinPriceForecastingTaining.Trainers;
 using BitcoinPriceForecastingTaining.TrainingDataSavers;
 using Common;
+using Common.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.ML;
 
@@ -24,7 +25,7 @@ if (string.IsNullOrEmpty(resourceFolderPath))
 
 var cryptoDataFetcher = new CryptoDataFetcher(new HttpClient(), key);
 var coinHistoricalData = await cryptoDataFetcher.GetHistoricalData("bitcoin");
-//var coinData = await cryptoDataFetcher.GetData("bitcoin");
+
 if (coinHistoricalData == null)
 {
     throw new ArgumentNullException(nameof(coinHistoricalData), "Error when trying to get data for training.");
@@ -34,9 +35,22 @@ var converter = new DataConverter();
 var context = new MLContext();
 var trainer = new ForecastBySsaTrainer(context, resourceFolderPath);
 
+//Data from API
+/*
 var modelId = trainer.Train(converter.ConvertToIDataView(context, coinHistoricalData));
+*/
+
+//Data from file
+string trainDataPath = "D:\\Projects\\BitcoinPriceForecasting\\Common\\Resources\\Data\\ForecastBySsa\\ForecastBySsa_15.10.2025_19.49.04";
+var trainDataView = context.Data.LoadFromTextFile<HistoricalDataRecord>(
+    trainDataPath,
+    hasHeader: true,
+    separatorChar: ',');
+var modelId = trainer.Train(trainDataView);
+
 var saver = new TrainingDataSaver(resourceFolderPath);
 await saver.SaveAsync(trainer.TrainerType, modelId, coinHistoricalData);
+
 trainer.Evaluate();
 
 Console.WriteLine($"\ntrainer: {trainer.GetType().Name}\nmodelId: {modelId}");
