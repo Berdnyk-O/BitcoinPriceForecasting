@@ -96,20 +96,6 @@ else
             </RadzenStack>
         </RadzenCard>
 
-        <RadzenChart class="mt-0">
-            <h3>Ціна біткоїна за місяць</h3>
-            <RadzenChartTooltipOptions/>
-            <RadzenLineSeries Smooth="true" Data="@_monthlyBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
-                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
-                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
-            </RadzenLineSeries>
-            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90"/>
-            <RadzenValueAxis Formatter="@FormatAsUSD">
-                <RadzenGridLines Visible="true" />
-                <RadzenAxisTitle Text="Prices" />
-            </RadzenValueAxis>
-        </RadzenChart>
-
         <RadzenChart>
             <h3>Середня ціна за останні 10 місяців</h3>
             <RadzenChartTooltipOptions />
@@ -139,9 +125,13 @@ else
         </RadzenChart>
 
         <RadzenChart>
-            <h3>Прогнозована ціна біткоїна</h3>
+            <h3>Ціна біткоїна за місяць</h3>
             <RadzenChartTooltipOptions />
-            <RadzenLineSeries Smooth="true" Data="@_predictedMonthlyBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+            <RadzenLineSeries Smooth="true" Data="@_monthlyBitcoinPrices" CategoryProperty="Date" Title="Актуальна" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenLineSeries Smooth="true" Data="@_predictedMonthlyBitcoinPrices" CategoryProperty="Date" Title="Прогнозована" LineType="LineType.Solid" ValueProperty="Price">
                 <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
                 <RadzenSeriesDataLabels Visible="@_showDataLabels" />
             </RadzenLineSeries>
