@@ -1,0 +1,59 @@
+﻿@page "/prediction"
+
+@using BitcoinPriceForecasting.ViewModels
+@using Common.Entities
+@using Microsoft.Extensions.ML
+@using Microsoft.ML
+@inject PredictionEnginePool<HistoricalDataRecord, HictoricalDataPredictionResult> PredictionEnginePool
+
+<h3>Prediction</h3>
+
+<div class="form-container">
+        <EditForm Model="@_data" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="dateInput">📅 Date:</label>
+                <InputDate id="dateInput" @bind-Value="_data.Date" class="form-control styled-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="marketCapInput">💰 Market Cap:</label>
+                <InputNumber id="marketCapInput" @bind-Value="_data.MarketCap" class="form-control styled-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="volumeInput">📊 Total Volume:</label>
+                <InputNumber id="volumeInput" @bind-Value="_data.TotalVolume" class="form-control styled-input" />
+            </div>
+
+            <button type="submit" class="btn-submit">Submit</button>
+        </EditForm>
+</div>
+
+
+@if (_prediction != null)
+{
+    <p>Prediction: @_prediction.PredictedValue</p>
+}
+
+
+@code {
+    private HistoricalDataRecordViewModel _data = new();
+    private HictoricalDataPredictionResult _prediction = null!;
+
+    private void HandleSubmit()
+    {
+        _prediction = null;
+        HistoricalDataRecord dataRecord = new()
+        {
+            Date = new DateTimeOffset(_data.Date).ToUnixTimeSeconds(),
+            MarketCap = _data.MarketCap,
+            TotalVolume = _data.TotalVolume
+        };
+
+        var _engine = PredictionEnginePool.GetPredictionEngine("FastTree");
+        _prediction = _engine.Predict(dataRecord);
+    }
+}

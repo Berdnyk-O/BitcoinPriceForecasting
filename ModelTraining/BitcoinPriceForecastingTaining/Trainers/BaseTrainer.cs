@@ -1,0 +1,50 @@
+﻿using Microsoft.ML;
+using static Microsoft.ML.DataOperationsCatalog;
+
+namespace BitcoinPriceForecastingTaining.Trainers
+{
+    internal abstract class BaseTrainer
+    {
+        public abstract string TrainerType { get; }
+        public string DirectoryPath => Path.Combine(BaseDirectory, TrainerType);
+
+        protected string BaseDirectory => Path.Combine(_resourceFolderPath, "Models");
+
+        protected MLContext _context = null!;
+
+        protected ITransformer _trainedModel = null!;
+        protected TrainTestData _dataSplit;
+
+        private string _resourceFolderPath;
+
+        protected BaseTrainer(MLContext context, string resourceFolderPath)
+        {
+            _context = context;
+            _resourceFolderPath = resourceFolderPath;
+        }
+
+        public abstract string Train(IDataView trainDataView);
+
+        public void Save(string modelName, ITransformer trainedModel, DataViewSchema schema)
+        {
+            Directory.CreateDirectory(DirectoryPath);
+
+            var modelPath = Path.Combine(DirectoryPath, modelName);
+
+            _context.Model.Save(_trainedModel, _dataSplit.TrainSet.Schema, modelPath);
+        }
+
+        public virtual void Evaluate()
+        {
+            var testSetTransform = _trainedModel.Transform(_dataSplit.TestSet);
+
+            var modelMetrics = _context.Regression.Evaluate(testSetTransform, labelColumnName: "Label", scoreColumnName: "Score");
+
+            Console.WriteLine($"Loss Function: {modelMetrics.LossFunction}\n" +
+                $"Mean Absolute Error: {modelMetrics.MeanAbsoluteError}\n" +
+                $"Mean Squared Error: {modelMetrics.MeanSquaredError}\n" +
+                $"Rsquared: {modelMetrics.RSquared}\n" +
+                $"Root Mean Squared Error: {modelMetrics.RootMeanSquaredError}");
+        }
+    }
+}

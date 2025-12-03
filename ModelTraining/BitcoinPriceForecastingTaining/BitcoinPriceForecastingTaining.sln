@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitcoinPriceForecastingTaining", "BitcoinPriceForecastingTaining.csproj", "{681E3F3D-E1B1-49C7-BA4D-CDEE4D4B30CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BitcoinPriceForecastingTaining", "BitcoinPriceForecastingTaining.csproj", "{681E3F3D-E1B1-49C7-BA4D-CDEE4D4B30CB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "..\..\Common\Common.csproj", "{F60CCC03-7EDF-457B-8C37-5ACD1614F67B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{681E3F3D-E1B1-49C7-BA4D-CDEE4D4B30CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{681E3F3D-E1B1-49C7-BA4D-CDEE4D4B30CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{681E3F3D-E1B1-49C7-BA4D-CDEE4D4B30CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F60CCC03-7EDF-457B-8C37-5ACD1614F67B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F60CCC03-7EDF-457B-8C37-5ACD1614F67B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F60CCC03-7EDF-457B-8C37-5ACD1614F67B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F60CCC03-7EDF-457B-8C37-5ACD1614F67B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

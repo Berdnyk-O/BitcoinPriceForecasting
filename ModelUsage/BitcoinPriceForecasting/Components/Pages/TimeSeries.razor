@@ -1,0 +1,183 @@
+﻿@page "/timeseries"
+
+@using BitcoinPriceForecasting.ViewModels
+@using Common
+@using Common.Entities
+@using System.Globalization
+@using Microsoft.Extensions.ML
+@using Microsoft.ML
+@using Microsoft.ML.Transforms.TimeSeries
+
+@inject CryptoDataStore CryptoDataStore
+@inject TimeSeriesForecastingService ForecastService
+
+<PageTitle>Bitcoin Info</PageTitle>
+    <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12" Gap="4rem">
+        <RadzenCard Variant="Variant.Outlined">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenCheckBox @bind-Value="@_showDataLabels" Name="dataLabels"></RadzenCheckBox>
+                    <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenCard>
+
+        <RadzenChart>
+            <h3>Середня ціна за останні 10 місяців</h3>
+            <RadzenChartTooltipOptions />
+            <RadzenLineSeries Smooth="true" Data="@_lastTenMonthAvarageBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90" />
+            <RadzenValueAxis Formatter="@FormatAsUSD">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Prices" />
+            </RadzenValueAxis>
+        </RadzenChart>
+
+        <RadzenChart>
+            <h3>Максимальна ціна за останні 10 місяців</h3>
+            <RadzenChartTooltipOptions />
+            <RadzenLineSeries Smooth="true" Data="@_lastTenMonthMaxBitcoinPrices" CategoryProperty="Date" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90" />
+            <RadzenValueAxis Formatter="@FormatAsUSD">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Prices" />
+            </RadzenValueAxis>
+        </RadzenChart>
+
+        <RadzenChart>
+            <h3>Ціна біткоїна за місяць</h3>
+            <RadzenChartTooltipOptions />
+            <RadzenLineSeries Smooth="true" Data="@_monthlyBitcoinPrices" CategoryProperty="Date" Title="Актуальна" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenLineSeries Smooth="true" Data="@_predictedMonthlyBitcoinPrices" CategoryProperty="Date" Title="Прогнозована" LineType="LineType.Solid" ValueProperty="Price">
+                <RadzenMarkers Visible="true" MarkerType="MarkerType.Circle" Size="5" />
+                <RadzenSeriesDataLabels Visible="@_showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" LabelAutoRotation="-90" />
+            <RadzenValueAxis Formatter="@FormatAsUSD">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Prices" />
+            </RadzenValueAxis>
+        </RadzenChart>
+</RadzenStack>
+
+@code {
+    private const string BitcoinId = "bitcoin";
+    private BitcoinPriceDataViewModel[] _monthlyBitcoinPrices;
+    private BitcoinPriceDataViewModel[] _predictedMonthlyBitcoinPrices;
+    private BitcoinPriceDataViewModel[] _lastTenMonthAvarageBitcoinPrices;
+    private BitcoinPriceDataViewModel[] _lastTenMonthMaxBitcoinPrices;
+    private bool _showDataLabels = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CryptoDataStore.InitializeAsync();
+
+        var bitcoinhistoricalData = CryptoDataStore.CoinHistoricalData.Prices
+            .Select(x => new BitcoinPriceDataViewModel
+                {
+                    Date = UnixTimeStampToDateOnly(Convert.ToDouble(x[0])).ToString("yyyy-MM-dd"),
+                    Price = Convert.ToDouble(x[1])
+                })
+            .ToArray();
+
+        _lastTenMonthAvarageBitcoinPrices = bitcoinhistoricalData
+            .GroupBy(data => DateTime.Parse(data.Date).ToString("yyyy-MM"))
+            .Take(10)
+            .Select(group => new BitcoinPriceDataViewModel
+                {
+                    Date = group.Key,
+                    Price = group.Average(x => x.Price)
+                })
+            .ToArray();
+
+        _lastTenMonthMaxBitcoinPrices = bitcoinhistoricalData
+            .GroupBy(data => DateTime.Parse(data.Date).ToString("yyyy-MM"))
+            .Take(10)
+            .Select(group => new BitcoinPriceDataViewModel
+                {
+                    Date = group.Key,
+                    Price = group.Max(x => x.Price)
+                })
+            .ToArray();
+
+        _monthlyBitcoinPrices = bitcoinhistoricalData
+           .Where(data => DateTime.Parse(data.Date) > DateTime.Now.AddMonths(-1))
+           .ToArray();
+
+        _predictedMonthlyBitcoinPrices = new BitcoinPriceDataViewModel[_monthlyBitcoinPrices.Length];
+       
+        HistoricalDataRecord dataRecord = new()
+            {
+                Date = new DateTimeOffset(DateTime.Parse(_monthlyBitcoinPrices[_monthlyBitcoinPrices.Length - 1].Date)).ToUnixTimeSeconds(),
+                MarketCap = GetAverageMarketCapLastMonth(),
+                TotalVolume = GetAverageTotalVolumeLastMonth(),
+            };
+
+
+        var v = ForecastService.Predict();
+
+        for (int i = 0; i < _monthlyBitcoinPrices.Length; i++)
+        {
+            _predictedMonthlyBitcoinPrices[i] = new BitcoinPriceDataViewModel
+            {
+                Date = _monthlyBitcoinPrices[i].Date,
+                Price = v.Forecast[i],
+            };
+        }
+    }
+
+    private string FormatAsUSD(object value)
+    {
+        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+
+
+    public DateTime UnixTimeStampToDateOnly(double unixTimeStamp)
+    {
+        unixTimeStamp /= 1000;
+        DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+        return dateTime;
+    }
+
+    public long DateTimeToUnixTimestamp(DateTime dateTime)
+    {
+        return new DateTimeOffset(dateTime).ToUnixTimeSeconds();
+    }
+
+    public float GetAverageMarketCapLastMonth()
+    {
+        var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeMilliseconds();
+
+        var averageMarketCap = CryptoDataStore.CoinHistoricalData.MarketCaps
+            .Where(mc => mc[0] >= thirtyDaysAgo)
+            .Select(mc => mc[1])
+            .DefaultIfEmpty()
+            .Average();
+
+        return averageMarketCap;
+    }
+
+    public float GetAverageTotalVolumeLastMonth()
+    {
+        var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeMilliseconds();
+
+        var averageMarketCap = CryptoDataStore.CoinHistoricalData.MarketCaps
+            .Where(mc => mc[0] >= thirtyDaysAgo)
+            .Select(mc => mc[1])
+            .DefaultIfEmpty()
+            .Average();
+
+        return averageMarketCap;
+    }
+
+}
